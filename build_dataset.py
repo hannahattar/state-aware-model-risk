@@ -22,7 +22,7 @@ def build_dataset(ticker="SPY", start="2006-01-01"):
     df["vol20"] = df["ret1"].rolling(20).std()
 
     df = df.dropna().copy()
-    df = df.reset_index()  # makes 'date' a column
+    df = df.reset_index()
 
     return df
 

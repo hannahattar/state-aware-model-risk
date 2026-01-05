@@ -3,15 +3,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-# -----------------------------
-# Paths (Step 0)
-# -----------------------------
+
 HERE = Path(__file__).resolve().parent
 DATA_PATH = HERE / "data_spy_features_regimes.csv"
 
-# -----------------------------
-# Load data
-# -----------------------------
+
 df = pd.read_csv(DATA_PATH)
 
 if "Date" not in df.columns:
@@ -20,9 +16,6 @@ if "Date" not in df.columns:
 df["Date"] = pd.to_datetime(df["Date"])
 df = df.sort_values("Date").reset_index(drop=True)
 
-# -----------------------------
-# Use test set only
-# -----------------------------
 split = int(len(df) * 0.7)
 df_test = df.loc[split:].copy()
 
@@ -32,25 +25,19 @@ missing = [c for c in required if c not in df_test.columns]
 if missing:
     raise ValueError(f"Missing columns: {missing}")
 
-# -----------------------------
-# Error + confidence
-# -----------------------------
+# Error & confidence
 df_test["confidence"] = np.abs(df_test["p"] - 0.5)
 df_test["correct"] = (df_test["pred"] == df_test["y"]).astype(int)
 df_test["error"] = 1 - df_test["correct"]
 
-# -----------------------------
 # Confidence bins
-# -----------------------------
 df_test["conf_bin"] = pd.qcut(
     df_test["confidence"],
     q=10,
     duplicates="drop"
 )
 
-# -----------------------------
 # Aggregate stats by regime
-# -----------------------------
 stats = (
     df_test
     .groupby(["regime", "conf_bin"], observed=True)
@@ -65,9 +52,7 @@ stats = (
 print("\nError anatomy by regime and confidence bin:")
 print(stats)
 
-# -----------------------------
 # Plot accuracy vs confidence
-# -----------------------------
 fig, ax = plt.subplots(figsize=(8, 5), dpi=150)
 
 for r, sub in stats.groupby("regime"):

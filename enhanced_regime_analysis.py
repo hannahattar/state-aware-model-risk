@@ -3,15 +3,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-# -----------------------------
-# Paths (Step 0)
-# -----------------------------
+
 HERE = Path(__file__).resolve().parent
 DATA_PATH = HERE / "data_spy_features_regimes.csv"
 
-# -----------------------------
-# Load data
-# -----------------------------
+
 df = pd.read_csv(DATA_PATH)
 
 if "Date" not in df.columns:
@@ -20,9 +16,6 @@ if "Date" not in df.columns:
 df["Date"] = pd.to_datetime(df["Date"])
 df = df.sort_values("Date").reset_index(drop=True)
 
-# -----------------------------
-# Use test set only
-# -----------------------------
 split = int(len(df) * 0.7)
 df_test = df.loc[split:].copy()
 
@@ -31,24 +24,18 @@ missing = [c for c in required_cols if c not in df_test.columns]
 if missing:
     raise ValueError(f"Missing columns: {missing}")
 
-# -----------------------------
 # Confidence and correctness
-# -----------------------------
 df_test["confidence"] = np.abs(df_test["p"] - 0.5)
 df_test["correct"] = (df_test["pred"] == df_test["y"]).astype(int)
 
-# -----------------------------
 # Confidence bins
-# -----------------------------
 df_test["conf_bin"] = pd.qcut(
     df_test["confidence"],
     q=10,
     duplicates="drop"
 )
 
-# -----------------------------
 # Accuracy vs confidence by regime
-# -----------------------------
 stats = (
     df_test
     .groupby(["regime", "conf_bin"], observed=True)
@@ -62,9 +49,7 @@ stats = (
 print("\nAccuracy by confidence bin and regime:")
 print(stats)
 
-# -----------------------------
-# Plot accuracy vs confidence
-# -----------------------------
+# Plot
 fig, ax = plt.subplots(figsize=(10, 5), dpi=150)
 
 for r, sub in stats.groupby("regime"):
@@ -88,9 +73,7 @@ print("\nConfidence summary:")
 print(df_test["confidence"].describe())
 
 
-# -----------------------------
 # Strategy construction
-# -----------------------------
 # Base directional signal
 df_test["position"] = np.where(df_test["p"] >= 0.5, 1.0, -1.0)
 
@@ -102,16 +85,14 @@ df_test["position_filt"] = np.where(
     0.0
 )
 
-# Turn strategy OFF in regime 3
+# Turn strategy off in 3
 df_test.loc[df_test["regime"] == 3, "position_filt"] = 0.0
 
 
-# Strategy returns (real returns, not labels)
+# Strategy returns
 df_test["strategy_ret"] = df_test["position_filt"] * df_test["ret1_next"]
 
-# -----------------------------
 # Performance metrics
-# -----------------------------
 def sharpe(returns, rf=0.05, periods=252):
     r = returns.dropna()
     if r.std() == 0:
@@ -129,9 +110,7 @@ df_test["drawdown"] = df_test["equity"] / df_test["peak"] - 1
 print("Max drawdown:", round(df_test["drawdown"].min(), 3))
 print("Trade frequency:", (df_test["position_filt"] != 0).mean())
 
-# -----------------------------
 # Sharpe by regime
-# -----------------------------
 regime_sharpes = (
     df_test
     .groupby("regime")
@@ -142,9 +121,7 @@ regime_sharpes = (
 print("\nSharpe by regime:")
 print(regime_sharpes)
 
-# -----------------------------
-# Plot equity curve
-# -----------------------------
+# Plot
 plt.figure(figsize=(10, 4), dpi=150)
 plt.plot(df_test["Date"], df_test["equity"])
 plt.title("Strategy Equity Curve (Out-of-Sample)")

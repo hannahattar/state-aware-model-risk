@@ -4,9 +4,7 @@ from pathlib import Path
 from sklearn.mixture import GaussianMixture
 from sklearn.preprocessing import StandardScaler
 
-# -----------------------------
-# Paths (Step 0)
-# -----------------------------
+# Paths
 HERE = Path(__file__).resolve().parent
 IN_PATH = HERE / "data_spy_features.csv"
 OUT_PATH = HERE / "data_spy_features_regimes.csv"
@@ -19,7 +17,7 @@ def add_gmm_regimes(df, features, n_regimes=4):
 
     X = df[features].values
 
-    # Time-based split (no leakage)
+    # Time-based split
     split = int(len(df) * 0.7)
     X_train = X[:split]
 
@@ -42,9 +40,7 @@ def add_gmm_regimes(df, features, n_regimes=4):
 
 if __name__ == "__main__":
 
-    # -----------------------------
     # Load dataset
-    # -----------------------------
     df = pd.read_csv(IN_PATH)
 
     # Ensure date column exists and is sorted
@@ -54,34 +50,26 @@ if __name__ == "__main__":
     df["Date"] = pd.to_datetime(df["Date"])
     df = df.sort_values("Date").reset_index(drop=True)
 
-    # -----------------------------
     # Regime features
-    # -----------------------------
     regime_features = ["ret5", "vol10", "vol20"]
 
-    # Drop rows with missing regime features
+    # Drop rows with missing features
     df = df.dropna(subset=regime_features).copy()
 
-    # -----------------------------
     # Add dynamic regimes
-    # -----------------------------
     df["regime"] = add_gmm_regimes(
         df,
         features=regime_features,
         n_regimes=4
     )
 
-    # -----------------------------
     # Diagnostics
-    # -----------------------------
     print("\nRegime counts:")
     print(df["regime"].value_counts().sort_index())
 
     print("\nMean features by regime:")
     print(df.groupby("regime")[regime_features].mean())
 
-    # -----------------------------
-    # Save
-    # -----------------------------
+
     df.to_csv(OUT_PATH, index=False)
     print("\nSaved:", OUT_PATH)

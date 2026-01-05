@@ -7,15 +7,10 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 
-# -----------------------------
-# Paths (Step 0)
-# -----------------------------
+
 HERE = Path(__file__).resolve().parent
 DATA_PATH = HERE / "data_spy_features_regimes.csv"
 
-# -----------------------------
-# Load data
-# -----------------------------
 df = pd.read_csv(DATA_PATH)
 
 if "Date" not in df.columns:
@@ -31,9 +26,7 @@ X = df[features].values
 y = df["y"].values
 regime = df["regime"].values
 
-# -----------------------------
-# Train global model (for visualization only)
-# -----------------------------
+# Train global model (for visualization)
 pipe = Pipeline([
     ("scaler", StandardScaler()),
     ("clf", LogisticRegression(C=1.0, solver="lbfgs", max_iter=2000))
@@ -41,9 +34,7 @@ pipe = Pipeline([
 
 pipe.fit(X, y)
 
-# -----------------------------
-# Build grid for decision surface
-# -----------------------------
+# grid for decision surface
 x0 = df["ret5"].values
 x1 = df["vol20"].values
 
@@ -58,9 +49,7 @@ xx0, xx1 = np.meshgrid(
 grid = np.c_[xx0.ravel(), xx1.ravel()]
 p_grid = pipe.predict_proba(grid)[:, 1].reshape(xx0.shape)
 
-# -----------------------------
-# Plot
-# -----------------------------
+
 fig, ax = plt.subplots(figsize=(8, 6), dpi=150)
 
 # Global probability field

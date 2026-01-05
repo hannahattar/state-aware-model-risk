@@ -6,8 +6,7 @@ from sklearn.metrics import brier_score_loss
 
 df = pd.read_csv("data_spy_features_regimes.csv")
 
-# keep only test rows if you have an indicator; otherwise filter by missing probs etc.
-# Example: assume p is only populated for test rows
+
 df = df.dropna(subset=["p", "y"])
 
 y = df["y"].astype(int).values
@@ -29,7 +28,6 @@ plt.title("Reliability Diagram (Out-of-Sample)")
 plt.tight_layout()
 plt.show()
 
-# Optional: show probability histogram (this supports your "compression" statement)
 plt.figure(figsize=(6, 3), dpi=150)
 plt.hist(p, bins=30)
 plt.xlabel("Predicted probability p")
